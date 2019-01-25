@@ -1,3 +1,4 @@
+# привет мир
 class Animal:
 
     def __init__(self, name, weight):
