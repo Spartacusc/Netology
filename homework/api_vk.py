@@ -16,7 +16,7 @@ def get_token():
 
 # get_token()
 
-TOKEN = '3d0c3cfd9e22d97eb98b076968301289f4a7574269a7be622f8ae66e450881c09e5120cb8957988a42875'
+TOKEN = '7795c07dc6f1bef3bb4ee4a3735153645d4f18e0636791d1cdc7917030abef4b4be3b283ec60d5759ced9'
 
 class User:
 
@@ -44,6 +44,12 @@ class User:
         api_method = 'friends.getMutual'
         data = requests.get(f'{request_url}{api_method}', params).json()
         # pprint(data)
+        friends_list = []
+        for friends in data['response']:
+            friend = User(friends)
+            friends_list.append(friend)
+            # print(friend)
+        pprint(friends_list)
         print('Количество общих друзей: ', len(data['response']))
 
 
