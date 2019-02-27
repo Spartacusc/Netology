@@ -1,8 +1,11 @@
-
+import asyncio
+import aiohttp
+import async_timeout
 import requests
 from pprint import pprint
-
+# coding=utf-8
 TOKEN = 'ed1271af9e8883f7a7c2cefbfddfcbc61563029666c487b2f71a5227cce0d1b533c4af4c5b888633c06ae'
+
 
 class User:
 
@@ -27,54 +30,68 @@ class User:
         request_url = 'https://api.vk.com/method/'
         api_method = 'groups.get'
         data = requests.get(f'{request_url}{api_method}', params).json()
-        # pprint(data)
         groups_id = data['response']['items']
-        # pprint(groups_id)
         id_list = []
         for group_id in groups_id:
-            # pprint(group_id['id'])
             id_list.append(group_id['id'])
-        # pprint(id_list)
         return id_list
 
     # Получаю список id друзей
     def friends_list(self):
         params = self.get_params()
         params['fields'] = None
-        params['count'] = None
+        params['count'] = 1
         request_url = 'https://api.vk.com/method/'
         api_method = 'friends.get'
-        response = requests.get(f'{request_url}{api_method}', params).json()
+        response = requests.get(f'{request_url}{api_method}', params, timeout=3).json()
         items = response['response']['items']
         friends_list = []
-        # pprint(items)
-        # for friends in items:
-        #     friend = User(friends)
-        #     friends_list.append(friend)
-        # pprint(friends_list)
         return items
 
-    # Пробую получить информацию о том является ли каждый друг участником каждой группы
+    # with async_timeout.timeout(0.001):
+    #     def in_groups(self):
+    #         group = self.groups()
+    #         item = self.friends_list()
+    #         params = {}
+    #         params['v'] = '5.92'
+    #         params['access_token'] = TOKEN
+    #         params['user_ids'] = item
+    #         total_list = {}
+    #         for id in group:
+    #             if id not in total_list.keys():
+    #                 total_list[id] = list()
+    #             params['group_id'] = id
+    #             request_url = 'https://api.vk.com/method/'
+    #             api_method = 'groups.isMember'
+    #             response = requests.get(f'{request_url}{api_method}', params).json()
+    #             # print(response)
+    #             total_list[id].append(response)
+    #         pprint(total_list)
+    #         return total_list
+
     def in_groups(self):
-        group = groups()
-        item = friends_list()
-        params = self.get_params()
+        group = self.groups()
+        item = self.friends_list()
+        params = {}
+        params['v'] = '5.92'
+        params['access_token'] = TOKEN
         params['user_ids'] = item
-        params['fields'] = None
-        params['count'] = None
-        total_list = []
+        total_list = {}
         for id in group:
+            if id not in total_list.keys():
+                total_list[id] = list()
             params['group_id'] = id
             request_url = 'https://api.vk.com/method/'
             api_method = 'groups.isMember'
             response = requests.get(f'{request_url}{api_method}', params).json()
-            total_list.append(response)
-        # pprint(total_list)
+            total_list[id].append(response)
+        pprint(total_list)
         return total_list
 
-# Не получается присвоить функции groups() и friends_list() внутри функции in_groups.
-# Ожидаю получить список со словарем, где ключ id групп ,а значение кол-во друзей в группах.
 
+# Ожидаю получить словарь с ключём в виде id групп, а значение словарь со словарём jsom. Из получившегося большого словаря вытащить id групп , в которых нет друзей.
+# Происходит ошибка 'error_code': 6.
+# Извините за закоментированный код, но так я пробовал разобраться с таймаутом запросов.
 if __name__ == '__main__':
 
     user1 = User(171691064)
@@ -85,9 +102,6 @@ if __name__ == '__main__':
 
     user1.in_groups()
 
-    # for item in user1.friends_list():
-    #     # pprint(item)
-    #     pprint(item.in_groups())
 
 
 
